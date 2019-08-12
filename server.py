@@ -1,6 +1,12 @@
 from flask import Flask, request, jsonify
+from flask_api import status
 
 app = Flask(__name__)
+
+
+@app.route('/', methods=['GET'])
+def health_check():
+    return {'health': 'good'}, status.HTTP_200_OK
 
 
 @app.route('/test', methods=['GET'])
