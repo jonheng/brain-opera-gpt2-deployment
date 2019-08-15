@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: gcr.io/brain-opera-deployment/helloworld
+          image: gcr.io/brain-opera-deployment/gpt2-model
           imagePullPolicy: Always
           readinessProbe:
             tcpSocket:
@@ -31,3 +31,6 @@ spec:
           ports:
             - containerPort: 8000
               name: http
+          resources:
+            limits:
+              nvidia.com/gpu: 1

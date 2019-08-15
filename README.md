@@ -85,23 +85,28 @@ Then, update components.
 ```sh
 # Enter [Y] when prompted
 gcloud components update
-
-# Might not need this
-gcloud components install beta
 ```
 
-7. **Create your GKE Cluster**
+7. **Create your GKE Cluster and GPU node pool**
 
 ```sh
-gcloud beta container clusters create brain-opera-cluster \
+# Creates a cluster named brain-opera-cluster
+gcloud container clusters create brain-opera-cluster \
   --machine-type=n1-standard-2 \
   --zone=asia-southeast1-b \
-  --num-nodes=2
+  --num-nodes=1 \
+  --accelerator type=nvidia-tesla-p4,count=1
 ```
 
 ```sh
+# Set some defaults for gcloud config
 gcloud config set run/cluster brain-opera-cluster
 gcloud config set run/cluster_location asia-southeast1-b
+```
+
+```sh
+# Install NVIDIA GPU device drivers
+kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded.yaml
 ```
 
 8. **Deploy the image to your GKE cluster**
@@ -110,6 +115,8 @@ First, build a Docker image and push it to Google Container Registry.
 
 ```sh
 gcloud builds submit --tag gcr.io/brain-opera-deployment/helloworld
+
+gcloud builds submit --tag gcr.io/brain-opera-deployment/gpt2-model
 ```
 
 Next, deploy the container and various services to the GKE cluster.
@@ -128,10 +135,14 @@ The ingress step takes a while (~10mins).
 Check that everything works.
 
 ```sh
-# Run the following command
-# Check that under ingress.kubernetes.io/backends, it displays: { <some_key>: "HEALTHY" }
+# Run the following command after ~10mins
+# Check that under ingress.kubernetes.io/backends, it displays: { <some_key>: "HEALTHY" }, which means everything is ok
+# If is displays "UNKNOWN", wait a little longer
+
 kubectl describe ing brain-opera-ingress
 ```
+
+If everything is ok, copy and paste the IP address from the above command into your browser. You should see a page which says {'health': 'good'}.
 
 9. **Cleaning up**
 
