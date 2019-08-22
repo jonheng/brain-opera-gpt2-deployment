@@ -15,11 +15,6 @@ def health_check():
     return {'health': 'good'}, status.HTTP_200_OK
 
 
-@app.route('/test', methods=['GET'])
-def test():
-    return 'hello_world'
-
-
 @app.route('/tf_check', methods=['GET'])
 def tf_check():
     return tf_health_check()
