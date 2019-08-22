@@ -4,7 +4,7 @@
 
 1. **Create a Google Cloud Platform account**
 
-2. **Install Cloud SDK and enable Google Kubernetes Engine API**
+2. **Install Cloud SDK**
 
 Follow the the steps for installing cloud SDK:
 <https://cloud.google.com/sdk/install>
@@ -46,7 +46,6 @@ An email will be sent to you for the quota request.
 The wait time is usually a few hours before the quota request is granted.
 
 6 **Set firewall rules**
-This only needs to be done once.
 
 ```sh
 gcloud compute --project=brain-opera-deployment firewall-rules create brain-opera-port8000 --direction=INGRESS --priority=1000 --network=default --action=ALLOW --rules=tcp:8000 --source-ranges=0.0.0.0/0 --target-tags=port8000
@@ -67,12 +66,17 @@ gcloud compute instances create $INSTANCE_NAME \
         --maintenance-policy=TERMINATE \
         --accelerator="type=nvidia-tesla-p4,count=1" \
         --machine-type=$INSTANCE_TYPE \
-        --boot-disk-size=30GB \
-        --metadata="install-nvidia-driver=True"
+        --boot-disk-size=200GB \
+        --metadata="install-nvidia-driver=True" \
         --tags=port8000
 ```
 
 8. **Setup VM**
+
+```sh
+# Copy model from local directory to VM
+gcloud compute scp --recurse ./checkpoint brain-opera-gpt2:~/checkpoint
+```
 
 ```sh
 # SSH into machine
@@ -81,20 +85,36 @@ gcloud compute --project "brain-opera-deployment" ssh --zone "asia-southeast1-b"
 # Clone repo
 git clone https://github.com/jonheng/brain-opera-gpt2-deployment.git
 
+# Move model into repo
+mv checkpoint/ brain-opera-gpt2-deployment/checkpoint
+
 # Go to cloned repo
 cd brain-opera-gpt2-deployment/
 
-# Install python3-venv
+# Install python3-venv, enter Y when prompted
 sudo apt-get install python3-venv
 
+# Install required libraries
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-CMD gunicorn -b :8000 server:app
+
+# Start server
+gunicorn -b :8000 server:app
 ```
 
 9. **Final test**
 
+Check your application IP
+
 ```sh
 gcloud compute instances list
+```
+
+Test that the connection works
+
+10. **Clean up**
+
+```sh
+gcloud projects delete brain-opera-deployment
 ```
