@@ -26,11 +26,16 @@ gcloud projects create brain-opera-deployment
 # Set your working project
 gcloud config set project brain-opera-deployment
 
+# If the above project name is taken, choose a differet project name
+# Note: project names need to be unique across GCP
+
 # Set compute zone
 gcloud config set compute/zone asia-southeast1-b
 ```
 
 5. **Set quota for GPU**
+
+First, go to the _Compute Engine_ tab and initialize it. Wait for it to complete.
 
 The default GPU quota for a GCP account with free credits is 0.
 A request for an increase in this quota is necessary to use GPUs.
@@ -45,7 +50,7 @@ Fill in the necessary info and request for the limit to be raised to 1.
 An email will be sent to you for the quota request.
 The wait time is usually a few hours before the quota request is granted.
 
-6 **Set firewall rules**
+6. **Set firewall rules**
 
 ```sh
 gcloud compute --project=brain-opera-deployment firewall-rules create brain-opera-port8000 --direction=INGRESS --priority=1000 --network=default --action=ALLOW --rules=tcp:8000 --source-ranges=0.0.0.0/0 --target-tags=port8000
@@ -116,5 +121,9 @@ Test that the connection works
 10. **Clean up**
 
 ```sh
+# To delete the vm instance
+gcloud compute instances delete brain-opera-gpt2
+
+# To delete entire project
 gcloud projects delete brain-opera-deployment
 ```
