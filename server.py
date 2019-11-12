@@ -25,6 +25,17 @@ def gpt2():
     prompt = request.args.get('prompt')
     return get_single_response(sess, prompt)
 
+@app.route('/gpt2_mock', methods=['GET'])
+def gpt2_mock():
+    return {'gpt2': 'This is a mock response.',
+            'sentiment': {
+                    'positive': 0,
+                    'negative': 0,
+                    'neutral': 0,
+                    'compound': 0
+                }
+            }
+
 
 if __name__ == '__main__':
     app.run(port=8000, debug=True)
