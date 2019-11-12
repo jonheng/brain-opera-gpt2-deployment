@@ -1,7 +1,7 @@
 git clone https://github.com/jonheng/brain-opera-gpt2-deployment.git
 
-echo "Copying checkpoint into repo folder and setting working directory"
-mv checkpoint/ brain-opera-gpt2-deployment/checkpoint
+echo "Copying model into repo folder and setting working directory"
+mv model/ brain-opera-gpt2-deployment/model
 cd brain-opera-gpt2-deployment/
 echo "Present working directory: $PWD"
 

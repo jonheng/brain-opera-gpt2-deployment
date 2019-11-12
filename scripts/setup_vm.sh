@@ -21,7 +21,7 @@ echo "Waiting for 5 minutes for VM to initialize"
 sleep 300
 
 # Copy model from local directory to VM
-gcloud compute scp --recurse ./checkpoint brain-opera-gpt2:~/checkpoint
+gcloud compute scp --recurse ./model brain-opera-gpt2:~/model
 
 gcloud compute --project $PROJECT_NAME ssh --zone $ZONE $INSTANCE_NAME -- "$(< ./vm_commands.sh)"
 

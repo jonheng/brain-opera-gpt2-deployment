@@ -1,8 +1,6 @@
-import gpt_2_simple as gpt2
 from flask import Flask, request, jsonify
 from flask_api import status
 from src.tf_check import tf_health_check
-from src.gpt2_model import get_single_response
 from src.libretto_bot import LibrettoBot
 from gpt_2_finetuning.conditional_sample_model import ConditionalSampleModel
 
