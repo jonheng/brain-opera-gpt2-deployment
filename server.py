@@ -1,13 +1,16 @@
 import gpt_2_simple as gpt2
 from flask import Flask, request, jsonify
 from flask_api import status
-from tf_check import tf_health_check
-from gpt2_model import get_single_response
+from src.tf_check import tf_health_check
+from src.gpt2_model import get_single_response
+from src.libretto_bot import LibrettoBot
+from gpt_2_finetuning.conditional_sample_model import ConditionalSampleModel
+
 
 app = Flask(__name__)
 
-sess = gpt2.start_tf_sess()
-gpt2.load_gpt2(sess)
+model = ConditionalSampleModel(checkpoint_dir='./model', sample_length=50)
+bot = LibrettoBot(model)
 
 
 @app.route('/', methods=['GET'])
@@ -23,7 +26,9 @@ def tf_check():
 @app.route('/gpt2', methods=['GET'])
 def gpt2():
     prompt = request.args.get('prompt')
-    return get_single_response(sess, prompt)
+    bot.actor_prompt(prompt)
+    return bot.get_last_response()
+
 
 @app.route('/gpt2_mock', methods=['GET'])
 def gpt2_mock():
@@ -33,8 +38,8 @@ def gpt2_mock():
                     'negative': 0,
                     'neutral': 0,
                     'compound': 0
-                }
             }
+        }
 
 
 if __name__ == '__main__':
