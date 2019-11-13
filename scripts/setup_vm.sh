@@ -11,6 +11,7 @@ gcloud compute instances create $INSTANCE_NAME \
         --zone=$ZONE \
         --image-family=$IMAGE_FAMILY \
         --image-project=deeplearning-platform-release \
+        --accelerator="type=nvidia-tesla-p4,count=1" \
         --maintenance-policy=TERMINATE \
         --machine-type=$INSTANCE_TYPE \
         --boot-disk-size=200GB \

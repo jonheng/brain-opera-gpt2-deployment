@@ -20,7 +20,7 @@ class LibrettoBot:
         self.chat_history.append(self.actor_name + '\n' + prompt)
         self.chat_history.append(self.bot_name + '\n')
 
-        while len(self.chat_history) > MAX_HISTORY:
+        while len(self.chat_history) > self.MAX_HISTORY:
             self.chat_history.pop(0)
 
         bot_reply = self.model.run(self.history_as_string())[0]

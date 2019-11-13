@@ -25,7 +25,14 @@ def tf_check():
 def gpt2():
     prompt = request.args.get('prompt')
     bot.actor_prompt(prompt)
-    return bot.get_last_response()
+    return {'gpt2': bot.get_last_response(),
+            'sentiment': {
+                'positive': 0,
+                'negative': 0,
+                'neutral': 0,
+                'compound': 0
+            }
+        }
 
 
 @app.route('/gpt2_mock', methods=['GET'])
