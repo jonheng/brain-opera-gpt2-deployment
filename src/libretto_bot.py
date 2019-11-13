@@ -32,6 +32,7 @@ class LibrettoBot:
         eol_chars = '!.?'
         reply_str = reply_str.replace('\t', '')
         reply_str = reply_str.replace('\n', '')
+        reply_str = reply_str.lstrip().rstrip()
 
         truncated_str = ''
         for char in reply_str:
