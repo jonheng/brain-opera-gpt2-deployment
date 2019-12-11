@@ -1,39 +1,13 @@
-# Brain Opera GPT-2 deployment
+# Deploying model on GCP virtual machine
 
-## Starting gunicorn server
-
-```sh
-gunicorn -b :8000 server:app
-```
-
-## Building docker image
-
-```sh
-docker build -t brain-opera-gpt2 .
-```
-
-## Running docker image
-
-```sh
-This will run the docker image in the background
-docker run -d -p 8000:8000 brain-opera-gpt2
-```
-
-## Steps to deploying
+## Steps to deploy
 
 1. **Create a Google Cloud Platform account**
 
-2. **Install Cloud SDK and enable Google Kubernetes Engine API**
+2. **Install Cloud SDK**
 
-Follow the the steps for installing cloud SDK and enabling Google Kubernetes Engine API
-under the "Before you begin" section:
-<https://cloud.google.com/kubernetes-engine/docs/how-to/creating-a-cluster>
-
-If you do not have kubectl, you can install it as part of the Google Cloud SDK
-
-```sh
-gcloud components install kubectl
-```
+Follow the the steps for installing cloud SDK:
+<https://cloud.google.com/sdk/install>
 
 3. **After installing Cloud SDK, initialize it**
 
@@ -52,11 +26,16 @@ gcloud projects create brain-opera-deployment
 # Set your working project
 gcloud config set project brain-opera-deployment
 
+# If the above project name is taken, choose a differet project name
+# Note: project names need to be unique across GCP
+
 # Set compute zone
 gcloud config set compute/zone asia-southeast1-b
 ```
 
 5. **Set quota for GPU**
+
+First, go to the _Compute Engine_ tab and initialize it. Wait for it to complete.
 
 The default GPU quota for a GCP account with free credits is 0.
 A request for an increase in this quota is necessary to use GPUs.
@@ -71,83 +50,80 @@ Fill in the necessary info and request for the limit to be raised to 1.
 An email will be sent to you for the quota request.
 The wait time is usually a few hours before the quota request is granted.
 
-6. **Build and push image to Google Cloud Registry**
-
-First, enable the following APIs for the project, which are needed to create a
-cluster, build and publish a container into the Google Container registry.
+6. **Set firewall rules**
 
 ```sh
-gcloud services enable container.googleapis.com containerregistry.googleapis.com cloudbuild.googleapis.com
+gcloud compute --project=brain-opera-deployment firewall-rules create brain-opera-port8000 --direction=INGRESS --priority=1000 --network=default --action=ALLOW --rules=tcp:8000 --source-ranges=0.0.0.0/0 --target-tags=port8000
 ```
 
-Then, update components.
+7. **Create VM**
 
 ```sh
-# Enter [Y] when prompted
-gcloud components update
+export IMAGE_FAMILY="tf-1-14-cu100"
+export ZONE="asia-southeast1-b"
+export INSTANCE_NAME="brain-opera-gpt2"
+export INSTANCE_TYPE="n1-standard-2"
+
+gcloud compute instances create $INSTANCE_NAME \
+        --zone=$ZONE \
+        --image-family=$IMAGE_FAMILY \
+        --image-project=deeplearning-platform-release \
+        --maintenance-policy=TERMINATE \
+        --accelerator="type=nvidia-tesla-p4,count=1" \
+        --machine-type=$INSTANCE_TYPE \
+        --boot-disk-size=200GB \
+        --metadata="install-nvidia-driver=True" \
+        --tags=port8000
 ```
 
-7. **Create your GKE Cluster and GPU node pool**
+8. **Setup VM**
 
 ```sh
-# Creates a cluster named brain-opera-cluster
-gcloud container clusters create brain-opera-cluster \
-  --machine-type=n1-standard-2 \
-  --zone=asia-southeast1-b \
-  --num-nodes=1 \
-  --accelerator type=nvidia-tesla-p4,count=1
+# Copy model from local directory to VM
+gcloud compute scp --recurse ./checkpoint brain-opera-gpt2:~/checkpoint
 ```
 
 ```sh
-# Set some defaults for gcloud config
-gcloud config set run/cluster brain-opera-cluster
-gcloud config set run/cluster_location asia-southeast1-b
+# SSH into machine
+gcloud compute --project "brain-opera-deployment" ssh --zone "asia-southeast1-b" "brain-opera-gpt2"
+
+# Clone repo
+git clone https://github.com/jonheng/brain-opera-gpt2-deployment.git
+
+# Move model into repo
+mv checkpoint/ brain-opera-gpt2-deployment/checkpoint
+
+# Go to cloned repo
+cd brain-opera-gpt2-deployment/
+
+# Install python3-venv, enter Y when prompted
+sudo apt-get install python3-venv
+
+# Install required libraries
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+# Start server
+gunicorn -b :8000 server:app
 ```
 
+9. **Final test**
+
+Check your application IP
+
 ```sh
-# Install NVIDIA GPU device drivers
-kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded.yaml
+gcloud compute instances list
 ```
 
-8. **Deploy the image to your GKE cluster**
+Test that the connection works
 
-First, build a Docker image and push it to Google Container Registry.
-
-```sh
-gcloud builds submit --tag gcr.io/brain-opera-deployment/helloworld
-
-gcloud builds submit --tag gcr.io/brain-opera-deployment/gpt2-model
-```
-
-Next, deploy the container and various services to the GKE cluster.
+10. **Clean up**
 
 ```sh
-# Create various parts of the kubernetes cluster individually
-kubectl create -f ./kubernetes/deployment.yaml
-kubectl create -f ./kubernetes/service.yaml
-kubectl create -f ./kubernetes/ingress.yaml
+# To delete the vm instance
+gcloud compute instances delete brain-opera-gpt2
 
-# OR apply them all at once
-kubectl apply -f kubernetes
-```
-
-The ingress step takes a while (~10mins).
-Check that everything works.
-
-```sh
-# Run the following command after ~10mins
-# Check that under ingress.kubernetes.io/backends, it displays: { <some_key>: "HEALTHY" }, which means everything is ok
-# If is displays "UNKNOWN", wait a little longer
-
-kubectl describe ing brain-opera-ingress
-```
-
-If everything is ok, copy and paste the IP address from the above command into your browser. You should see a page which says {'health': 'good'}.
-
-9. **Cleaning up**
-
-Delete the cluster.
-
-```sh
-gcloud container clusters delete brain-opera-cluster
+# To delete entire project
+gcloud projects delete brain-opera-deployment
 ```
