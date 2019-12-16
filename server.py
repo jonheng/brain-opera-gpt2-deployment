@@ -3,6 +3,7 @@ from flask_api import status
 from src.tf_check import tf_health_check
 from src.libretto_bot import LibrettoBot
 from gpt_2_finetuning.conditional_sample_model import ConditionalSampleModel
+from src.sentiment_analysis import analyze
 
 
 app = Flask(__name__)
@@ -26,12 +27,7 @@ def gpt2():
     prompt = request.args.get('prompt')
     bot.actor_prompt(prompt)
     return {'gpt2': bot.get_last_response(),
-            'sentiment': {
-                'positive': 0,
-                'negative': 0,
-                'neutral': 0,
-                'compound': 0
-            }
+            'sentiment': analyze(bot.get_last_response())
         }
 
 
