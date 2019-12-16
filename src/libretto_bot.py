@@ -48,4 +48,4 @@ class LibrettoBot:
         self.chat_history = []
 
     def get_last_response(self):
-        return self.chat_history[-1].lstrip(self.bot_name + '\n')
+        return self.chat_history[-1][len(self.bot_name) + 1:]
