@@ -35,9 +35,9 @@ def gpt2():
 def gpt2_mock():
     return {'gpt2': 'This is a mock response.',
             'sentiment': {
-                    'positive': 0,
-                    'negative': 0,
-                    'neutral': 0,
+                    'pos': 0,
+                    'neg': 0,
+                    'neu': 0,
                     'compound': 0
             }
         }
