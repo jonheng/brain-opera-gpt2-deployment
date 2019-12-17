@@ -59,7 +59,7 @@ gcloud compute --project=brain-opera-deployment firewall-rules create brain-oper
 7. **Create VM**
 
 ```sh
-export IMAGE_FAMILY="tf-1-14-cu100"
+export IMAGE_FAMILY="tf-1-15-cu100"
 export ZONE="asia-southeast1-b"
 export INSTANCE_NAME="brain-opera-gpt2"
 export INSTANCE_TYPE="n1-standard-2"

@@ -1,4 +1,4 @@
-export IMAGE_FAMILY="tf-1-14-cu100"
+export IMAGE_FAMILY="tf-1-15-cu100"
 export ZONE="europe-west4-b"
 export INSTANCE_NAME="brain-opera-gpt2"
 export INSTANCE_TYPE="n1-standard-2"
