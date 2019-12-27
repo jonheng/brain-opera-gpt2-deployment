@@ -1,3 +1,19 @@
+# Development on local
+
+make sure you have model in this folder
+
+```sh
+
+# Install required libraries
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+# Start server
+gunicorn -b :8000 server:app
+
+```
+
 # Deploying model on GCP virtual machine
 
 ## Steps to deploy
