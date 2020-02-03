@@ -11,6 +11,7 @@ sudo apt-get install -y python3-venv
 echo "Setting up virtual environment and python dependencies"
 python3 -m venv .venv
 source .venv/bin/activate
+pip install --upgrade pip
 pip install -r requirements.txt
 
 echo "Starting server as a daemon process"
