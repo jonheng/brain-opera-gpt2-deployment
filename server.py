@@ -28,19 +28,28 @@ def gpt2():
     bot.actor_prompt(prompt)
     return {'gpt2': bot.get_last_response(),
             'sentiment': analyze(bot.get_last_response())
-        }
+            }
 
 
 @app.route('/gpt2_mock', methods=['GET'])
 def gpt2_mock():
-    return {'gpt2': 'This is a mock response.',
-            'sentiment': {
-                    'pos': 0,
-                    'neg': 0,
-                    'neu': 0,
-                    'compound': 0
-            }
+    return {
+        'gpt2': 'This is a mock response.',
+        'sentiment': {
+            'pos': 0,
+            'neg': 0,
+            'neu': 0,
+            'compound': 0
         }
+    }
+
+
+@app.route('/reset', methods=['GET'])
+def reset():
+    bot.clear_history()
+    return {
+        'message': 'Bot reset complete.'
+    }
 
 
 if __name__ == '__main__':
